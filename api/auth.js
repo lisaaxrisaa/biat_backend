@@ -140,76 +140,23 @@ router.get('/single-user', isLoggedIn, async (req, res, next) => {
 });
 // delete endpoint for the user
 
-router.delete('/users/:id', authenticateToken, async (req, res) => {
-  const userId = req.user.id;
-  const targetUserId = req.params.id;
-
-  if (userId !== targetUserId) {
-    return res.status(403).json({ message: 'You do not have permission to delete this user.' });
-  }
+router.delete('/users', isLoggedIn, async (req, res, next) => {
 
   try {
-    await prisma.user.delete({
-      where: { id: targetUserId },
-    });
-    res.status(200).json({ message: 'User deleted successfully.' });
+
+    if (!req.user) {
+      res.status(401).json({ message: 'Not Authorized' });
+    } else {
+      await prisma.user.delete({
+        where: { id: req.user.id },
+      });
+    }
+    res.sendStatus(204);
+
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete user.', error: error.message });
+    res.status(500).json({ message: 'Failed to delete user.'});
   }
+
 });
 
-module.exports = router;
 
-//middleware for authentication
-
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (token == null) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-// update endpoint for user to update email, first name, last name, and password
-
-router.put('/users/:id', authMiddleware, async (req, res) => {
-  const userId = req.params.id;
-  const { email, password, firstName, lastName } = req.body;
-
-  try {
-    const updatedUser = await prisma.user.update({
-      where: { id: parseInt(userId) },
-      data: {
-        email: email || undefined,
-        password: password || undefined,
-        firstName: firstName || undefined,
-        lastName: lastName || undefined,
-      },
-    });
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update user' });
-  }
-});
-
-module.exports = router;
-
-// only authenticated users can access the route. This middleware should verify the user's token and extract the user's ID from the token payload.
-
-function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-}
