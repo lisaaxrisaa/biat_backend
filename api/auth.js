@@ -140,10 +140,8 @@ router.get('/single-user', isLoggedIn, async (req, res, next) => {
 });
 // delete endpoint for the user
 
-router.delete('/users', isLoggedIn, async (req, res, next) => {
-
+router.delete('/user', isLoggedIn, async (req, res, next) => {
   try {
-
     if (!req.user) {
       res.status(401).json({ message: 'Not Authorized' });
     } else {
@@ -152,11 +150,38 @@ router.delete('/users', isLoggedIn, async (req, res, next) => {
       });
     }
     res.sendStatus(204);
-
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete user.'});
+    res.status(500).json({ message: 'Failed to delete user.' });
   }
-
 });
 
+router.put('/user/update', isLoggedIn, async (req, res) => {
+  const { email, first_name, last_name, password } = req.body;
 
+  try {
+    let updateData = { email, first_name, last_name };
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password, salt);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: req.user.id,
+      },
+      data: updateData,
+      select: {
+        email: true,
+        first_name: true,
+        last_name: true,
+      },
+    });
+    res
+      .status(200)
+      .json({ message: 'User updated successfully', user: updatedUser });
+  } catch (error) {
+    res.status(400).json({ error: 'Email is already in use' });
+  }
+  res.status(500).json({ error: 'Failed to update user' });
+});
