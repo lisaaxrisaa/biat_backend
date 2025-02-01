@@ -10,6 +10,11 @@ app.get('/', (req, res) => {
   res.send('Welcome to the backend API');
 });
 
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request at ${req.url}`);
+  next();
+});
+
 app.use((err, req, res, next) => {
   console.error(err.stack); // error log output
   res.status(500).json({ message: 'Something went wrong.' }); // error response
