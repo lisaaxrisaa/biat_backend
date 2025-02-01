@@ -1,18 +1,21 @@
 const { express } = require('./common');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const cors = require('cors');
 app.use(express.json());
 app.use(require('morgan')('dev'));
+
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  })
+);
 
 app.use('/', require('./api/auth'));
 
 app.get('/', (req, res) => {
   res.send('Welcome to the backend API');
-});
-
-app.use((req, res, next) => {
-  console.log(`Received ${req.method} request at ${req.url}`);
-  next();
 });
 
 app.use((err, req, res, next) => {
