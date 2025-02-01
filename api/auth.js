@@ -25,27 +25,114 @@ const isLoggedIn = async (req, res, next) => {
   }
 };
 
+router.get('/test-prisma', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+      },
+    });
+
+    console.log('🔍 Prisma Users:', users); // ✅ This should print all users
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('🔥 Prisma error:', error);
+    res.status(500).json({ error: 'Prisma query failed' });
+  }
+});
+
 router.post('/register', async (req, res, next) => {
   try {
     const { email, first_name, last_name, password } = req.body;
     console.log(`Created email ${email} and password ${password}`);
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
-    const response = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         first_name,
         last_name,
         password: hashPassword,
       },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+      },
     });
-    if (response.id) {
-      const token = createToken(response.id);
-      res.status(201).json({ token });
-    } else {
-      res.status(400).json({ message: 'Please try again.' });
+    // if (newUser.id) {
+    //   console.log('User created successfully:', newUser);
+    //   const token = createToken(newUser.id);
+    //   res.status(201).json({ token, user: newUser });
+    // } else {
+    //   res.status(400).json({ message: 'Please try again.' });
+    // }
+    console.log('New User:', newUser);
+    if (!newUser || !newUser.id) {
+      console.error('User creation failed.');
+      return res.status(400).json({ message: 'Please try again.' });
     }
+    const token = createToken(newUser.id);
+    res.status(201).json({ token, user: newUser });
   } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/register', async (req, res, next) => {
+  try {
+    const { email, first_name, last_name, password } = req.body;
+    console.log(`📨 Received registration request for email: ${email}`);
+
+    // Hash the password before storing it
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(password, salt);
+    console.log(`🔑 Password hashed for user: ${email}`);
+
+    // Create user in the database
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        first_name,
+        last_name,
+        password: hashPassword, // ✅ Store hashed password
+      },
+      select: {
+        // ✅ Only return safe fields
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+      },
+    });
+
+    console.log('🚀 Prisma created user:', newUser); // ✅ Log the new user object
+
+    // ✅ Ensure user creation was successful
+    if (!newUser || !newUser.id) {
+      console.error('❌ User creation failed.');
+      return res
+        .status(400)
+        .json({ message: 'User registration failed. Please try again.' });
+    }
+
+    // Generate authentication token
+    const token = createToken(newUser.id);
+    console.log('✅ Token generated for user:', newUser.id); // ✅ Confirm token
+
+    // Prepare response object
+    const responsePayload = { token, user: newUser };
+    console.log('📤 Sending response to frontend:', responsePayload); // ✅ Log final response
+
+    // Send response
+    res.status(201).json(responsePayload);
+  } catch (error) {
+    console.error('🔥 Error in /register route:', error); // ✅ Log errors
     next(error);
   }
 });
