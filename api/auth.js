@@ -70,10 +70,17 @@ router.post('/register', async (req, res, next) => {
 // return JSON web token
 router.post('/login', async (req, res, next) => {
   try {
+    console.log('Login request received:', req.body);
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({
       where: {
         email,
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
       },
     });
     if (!user) {
@@ -82,7 +89,9 @@ router.post('/login', async (req, res, next) => {
     const match = bcrypt.compare(password, user.password);
     if (match) {
       const token = createToken(user.id);
-      return res.json({ token });
+      return res.json({ token, user });
+    } else {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
   } catch (error) {
     next(error);
@@ -196,7 +205,9 @@ router.put('/user/update', isLoggedIn, async (req, res) => {
       .status(200)
       .json({ message: 'User updated successfully', user: updatedUser });
   } catch (error) {
-    res.status(400).json({ error: 'Email is already in use' });
+    if (error.code === 'P2002') {
+      res.status(400).json({ error: 'Email is already in use' });
+    }
   }
   res.status(500).json({ error: 'Failed to update user' });
 });
