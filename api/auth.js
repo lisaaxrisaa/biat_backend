@@ -218,8 +218,8 @@ router.put('/user/update', isLoggedIn, async (req, res) => {
       .json({ message: 'User updated successfully', user: updatedUser });
   } catch (error) {
     if (error.code === 'P2002') {
-      res.status(400).json({ error: 'Email is already in use' });
+      return res.status(400).json({ error: 'Email is already in use' });
     }
   }
-  res.status(500).json({ error: 'Failed to update user' });
+  return res.status(500).json({ error: 'Failed to update user' });
 });
