@@ -70,7 +70,6 @@ router.post('/register', async (req, res, next) => {
 // return JSON web token
 router.post('/login', async (req, res, next) => {
   try {
-    console.log('Login request received:', req.body);
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({
       where: {
@@ -81,18 +80,31 @@ router.post('/login', async (req, res, next) => {
         first_name: true,
         last_name: true,
         email: true,
+        password: true,
       },
     });
     if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      console.error('User not found:', email);
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+    if (!user.password) {
+      return res.status(500).json({ message: 'Password not found for user' });
     }
     const match = bcrypt.compare(password, user.password);
-    if (match) {
-      const token = createToken(user.id);
-      return res.json({ token, user });
-    } else {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    if (!match) {
+      console.error('Password does not match for user:', email);
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
+    const token = createToken(user.id);
+    res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+      },
+    });
   } catch (error) {
     next(error);
   }
