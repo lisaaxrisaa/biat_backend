@@ -5,4 +5,5 @@ const prisma = new PrismaClient();
 const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-module.exports = { express, router, prisma, faker, bcrypt, jwt };
+const axios = require('axios');
+module.exports = { express, router, prisma, faker, bcrypt, jwt, axios };
