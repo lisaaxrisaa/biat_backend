@@ -16,7 +16,12 @@ app.use(
 
 app.options('*', cors());
 
-app.use('/', require('./api/auth'));
+app.use('/api/auth', require('./api/auth'));
+app.use('/api/budget', require('./api/budget'));
+app.use('/api/checklist', require('./api/checklist'));
+app.use('/api/itinerary', require('./api/itinerary'));
+app.use('/api/journal', require('./api/journal'));
+app.use('/api/packing-list', require('./api/packingList'));
 
 app.get('/', (req, res) => {
   res.send('Welcome to the backend API');
