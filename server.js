@@ -1,7 +1,8 @@
-const { express } = require('./common');
+const { express, axios } = require('./common');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const cors = require('cors');
+require('dotenv').config();
 app.use(express.json());
 app.use(require('morgan')('dev'));
 
@@ -22,19 +23,20 @@ app.use('/api/checklist', require('./api/checklist'));
 app.use('/api/itinerary', require('./api/itinerary'));
 app.use('/api/journal', require('./api/journal'));
 app.use('/api/packing-list', require('./api/packingList'));
+app.use('/api/weather', require('./api/weather'));
 
 app.get('/', (req, res) => {
   res.send('Welcome to the backend API');
 });
 
 app.use((req, res, next) => {
-  console.log('Response Headers:', res.getHeaders()); // Log response headers
+  console.log('Response Headers:', res.getHeaders());
   next();
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack); // error log output
-  res.status(500).json({ message: 'Something went wrong.' }); // error response
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong.' });
 });
 
 app.listen(PORT, () => {
