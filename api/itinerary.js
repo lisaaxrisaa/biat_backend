@@ -39,8 +39,26 @@ router.get('/user/itinerary', isLoggedIn, async (req, res) => {
   }
 });
 
+router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const itinerary = await prisma.itinerary.findUnique({
+      where: {
+        id: id, // Expecting UUID here
+      },
+    });
+    if (!itinerary) {
+      return res.status(404).json({ message: 'Itinerary not found' });
+    }
+    res.status(200).json(itinerary);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch itinerary' });
+  }
+});
+
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
+  console.log('Received UUID:', id);
   const { tripName, startDate, endDate, type, name, description, data, time } =
     req.body;
 
