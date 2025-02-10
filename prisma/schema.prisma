@@ -40,6 +40,17 @@ model Itinerary {
   date         DateTime 
   time         String    
   user         User      @relation(fields: [userId], references: [id])
+  activities   Activity[] 
+}
+
+model Activity {
+  id            String    @id @default(uuid())
+  itineraryId   String
+  name          String
+  description   String?
+  activityTime  DateTime
+  location      String
+  itinerary     Itinerary @relation(fields: [itineraryId], references: [id])
 }
 
 
