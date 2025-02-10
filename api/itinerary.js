@@ -22,6 +22,7 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
     });
     res.status(201).json(newItinerary);
   } catch (error) {
+    console.error('Error creating itinerary:', error);
     res.status(500).json({ message: 'Failed to add itinerary' });
   }
 });
@@ -41,10 +42,11 @@ router.get('/user/itinerary', isLoggedIn, async (req, res) => {
 
 router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
+  console.log('Backend received ID:', id);
   try {
     const itinerary = await prisma.itinerary.findUnique({
       where: {
-        id: id, // Expecting UUID here
+        id: id,
       },
     });
     if (!itinerary) {
@@ -58,8 +60,7 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
-  console.log('Received UUID:', id);
-  const { tripName, startDate, endDate, type, name, description, data, time } =
+  const { tripName, startDate, endDate, type, name, description, date, time } =
     req.body;
 
   try {
@@ -74,7 +75,7 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         type,
         name,
         description,
-        date: new Date(data),
+        date: new Date(date),
         time,
       },
     });
