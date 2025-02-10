@@ -3,8 +3,17 @@ const { isLoggedIn } = require('./authMiddleware');
 module.exports = router;
 
 router.post('/user/itinerary', isLoggedIn, async (req, res) => {
-  const { tripName, startDate, endDate, type, name, description, date, time } =
-    req.body;
+  const {
+    tripName,
+    startDate,
+    endDate,
+    type,
+    name,
+    description,
+    date,
+    time,
+    activities,
+  } = req.body;
 
   try {
     const newItinerary = await prisma.itinerary.create({
@@ -18,6 +27,9 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
         date: new Date(date),
         time,
         user: { connect: { id: req.user.id } },
+        activities: {
+          create: activities,
+        },
       },
     });
     res.status(201).json(newItinerary);
@@ -60,8 +72,17 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
-  const { tripName, startDate, endDate, type, name, description, date, time } =
-    req.body;
+  const {
+    tripName,
+    startDate,
+    endDate,
+    type,
+    name,
+    description,
+    date,
+    time,
+    activities,
+  } = req.body;
 
   try {
     const updatedItinerary = await prisma.itinerary.update({
@@ -77,6 +98,13 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         description,
         date: new Date(date),
         time,
+        activities: {
+          upsert: activities.map((activity) => ({
+            where: { id: activity.id || '' },
+            update: activity,
+            create: activity,
+          })),
+        },
       },
     });
     res.status(200).json(updatedItinerary);
