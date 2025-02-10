@@ -48,7 +48,7 @@ model Activity {
   itineraryId   String
   name          String
   description   String?
-  activityTime  DateTime
+  activityTime  String
   location      String
   itinerary     Itinerary @relation(fields: [itineraryId], references: [id])
 }

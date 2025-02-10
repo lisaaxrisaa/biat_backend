@@ -15,6 +15,8 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
     activities,
   } = req.body;
 
+  console.log('Request Body:', req.body);
+
   try {
     const newItinerary = await prisma.itinerary.create({
       data: {
@@ -28,7 +30,12 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
         time,
         user: { connect: { id: req.user.id } },
         activities: {
-          create: activities,
+          create: activities.map((activity) => ({
+            name: activity.name,
+            description: activity.description,
+            activityTime: activity.activityTime,
+            location: activity.location,
+          })),
         },
       },
     });
