@@ -67,6 +67,9 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       where: {
         id: id,
       },
+      include: {
+        activities: true,
+      },
     });
     if (!itinerary) {
       return res.status(404).json({ message: 'Itinerary not found' });
@@ -108,8 +111,19 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         activities: {
           upsert: activities.map((activity) => ({
             where: { id: activity.id || '' },
-            update: activity,
-            create: activity,
+            update: {
+              name: activity.name,
+              description: activity.description,
+              activityTime: activity.activityTime,
+              location: activity.location,
+            },
+            create: {
+              name: activity.name,
+              description: activity.description,
+              activityTime: activity.activityTime,
+              location: activity.location,
+              itineraryId: id,
+            },
           })),
         },
       },
