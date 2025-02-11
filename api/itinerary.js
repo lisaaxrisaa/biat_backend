@@ -150,6 +150,25 @@ router.delete('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   }
 });
 
+router.delete(
+  '/itinerary/activity/:activityId',
+  isLoggedIn,
+  async (req, res) => {
+    const { activityId } = req.params;
+
+    try {
+      await prisma.activity.delete({
+        where: { id: activityId },
+      });
+
+      res.status(200).json({ message: 'Activity deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      res.status(500).json({ message: 'Failed to delete activity' });
+    }
+  }
+);
+
 // router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 //   const { id } = req.params;
 //   const {
@@ -213,60 +232,13 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
-    // Get the existing activities from the database
-    const existingItinerary = await prisma.itinerary.findUnique({
-      where: { id },
-      include: { activities: true },
-    });
+    const activityData = activities.map((activity) => ({
+      name: activity.name,
+      description: activity.description,
+      activityTime: activity.activityTime,
+      location: activity.location,
+    }));
 
-    if (!existingItinerary) {
-      return res.status(404).json({ message: 'Itinerary not found' });
-    }
-
-    const existingActivityIds = new Set(
-      existingItinerary.activities.map((activity) => activity.id)
-    );
-
-    // Separate activities into new, updated, and deleted categories
-    const activitiesToCreate = [];
-    const activitiesToUpdate = [];
-    const activitiesToDelete = new Set(existingActivityIds);
-
-    activities.forEach((activity) => {
-      if (activity.id) {
-        // If the activity exists, update it
-        activitiesToUpdate.push({
-          where: { id: activity.id },
-          data: {
-            name: activity.name,
-            description: activity.description,
-            activityTime: activity.activityTime,
-            location: activity.location,
-          },
-        });
-
-        // Remove from deletion list since it's being updated
-        activitiesToDelete.delete(activity.id);
-      } else {
-        // If no ID, it's a new activity
-        activitiesToCreate.push({
-          name: activity.name,
-          description: activity.description,
-          activityTime: activity.activityTime,
-          location: activity.location,
-          itineraryId: id,
-        });
-      }
-    });
-
-    // Delete activities that were removed
-    await prisma.activity.deleteMany({
-      where: {
-        id: { in: Array.from(activitiesToDelete) },
-      },
-    });
-
-    // Perform the update
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
       data: {
@@ -279,11 +251,9 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         date: new Date(date),
         time,
         activities: {
-          create: activitiesToCreate, // Add new activities
-          update: activitiesToUpdate, // Update existing activities
+          create: activityData,
         },
       },
-      include: { activities: true },
     });
 
     res.status(200).json(updatedItinerary);
