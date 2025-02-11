@@ -15,8 +15,6 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
     activities,
   } = req.body;
 
-  console.log('Request Body:', req.body);
-
   try {
     const newItinerary = await prisma.itinerary.create({
       data: {
@@ -80,6 +78,60 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   }
 });
 
+// router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
+//   const { id } = req.params;
+//   const {
+//     tripName,
+//     startDate,
+//     endDate,
+//     type,
+//     name,
+//     description,
+//     date,
+//     time,
+//     activities,
+//   } = req.body;
+
+//   try {
+//     const updatedItinerary = await prisma.itinerary.update({
+//       where: {
+//         id,
+//       },
+//       data: {
+//         tripName,
+//         startDate: new Date(startDate),
+//         endDate: new Date(endDate),
+//         type,
+//         name,
+//         description,
+//         date: new Date(date),
+//         time,
+//         activities: {
+//           upsert: activities.map((activity) => ({
+//             where: { id: activity.id || '' },
+//             update: {
+//               name: activity.name,
+//               description: activity.description,
+//               activityTime: activity.activityTime,
+//               location: activity.location,
+//             },
+//             create: {
+//               name: activity.name,
+//               description: activity.description,
+//               activityTime: activity.activityTime,
+//               location: activity.location,
+//               itineraryId: id,
+//             },
+//           })),
+//         },
+//       },
+//     });
+//     res.status(200).json(updatedItinerary);
+//   } catch (error) {
+//     res.status(500).json({ message: 'Failed to update itinerary' });
+//   }
+// });
+
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const {
@@ -96,9 +148,7 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 
   try {
     const updatedItinerary = await prisma.itinerary.update({
-      where: {
-        id,
-      },
+      where: { id },
       data: {
         tripName,
         startDate: new Date(startDate),
@@ -109,27 +159,32 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         date: new Date(date),
         time,
         activities: {
-          upsert: activities.map((activity) => ({
-            where: { id: activity.id || '' },
-            update: {
+          // Loop over activities to either update or create
+          update: activities.map((activity) => ({
+            where: { id: activity.id }, // Use the provided activity id
+            data: {
               name: activity.name,
               description: activity.description,
               activityTime: activity.activityTime,
               location: activity.location,
             },
-            create: {
+          })),
+          create: activities
+            .filter((activity) => !activity.id) // Only create activities that don't have an id
+            .map((activity) => ({
               name: activity.name,
               description: activity.description,
               activityTime: activity.activityTime,
               location: activity.location,
               itineraryId: id,
-            },
-          })),
+            })),
         },
       },
     });
+
     res.status(200).json(updatedItinerary);
   } catch (error) {
+    console.error('Error updating itinerary:', error);
     res.status(500).json({ message: 'Failed to update itinerary' });
   }
 });
@@ -142,8 +197,9 @@ router.delete('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         id,
       },
     });
-    res.status(204).send();
+    res.status(200).send({ message: 'Itinerary successfully deleted' });
   } catch (error) {
+    console.error('Error deleting itinerary:', error);
     res.status(500).json({ message: 'Failed to delete itinerary' });
   }
 });
