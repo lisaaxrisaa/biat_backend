@@ -150,24 +150,26 @@ router.delete('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-router.delete(
-  '/itinerary/activity/:activityId',
-  isLoggedIn,
-  async (req, res) => {
-    const { activityId } = req.params;
+router.delete('/user/itinerary/activity/:id', isLoggedIn, async (req, res) => {
+  const { id } = req.params;
 
-    try {
-      await prisma.activity.delete({
-        where: { id: activityId },
-      });
+  try {
+    const activity = await prisma.activity.findUnique({ where: { id } });
 
-      res.status(200).json({ message: 'Activity deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting activity:', error);
-      res.status(500).json({ message: 'Failed to delete activity' });
+    if (!activity) {
+      return res.status(404).json({ message: 'Activity not found' });
     }
+
+    const response = await prisma.activity.delete({ where: { id } });
+
+    res
+      .status(200)
+      .json({ message: 'Activity deleted successfully', response });
+  } catch (error) {
+    console.error('Error deleting activity:', error);
+    res.status(500).json({ message: 'Failed to delete activity' });
   }
-);
+});
 
 // router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 //   const { id } = req.params;
