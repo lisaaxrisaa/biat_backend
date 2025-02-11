@@ -136,6 +136,7 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 // });
 
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
+  console.log('Received PUT data:', req.body); // Log the received body for debugging
   const { id } = req.params;
   const {
     tripName,
@@ -150,19 +151,12 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
-    // Prepare the data object, ensuring we only send non-null values
-    const updatedItineraryData = {
-      tripName,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      type,
-      name,
-      description,
-      date: date ? new Date(date) : undefined,
-      time,
-    };
+    // Check if activities data exists and has valid fields
+    if (activities) {
+      console.log('Activities:', activities); // Log activities to ensure they are correct
+    }
 
-    // Prepare activities (upsert if an activity id is present, otherwise create new)
+    // Upsert the activities data
     const activityUpsertData = activities?.map((activity) => {
       if (activity.id) {
         return {
@@ -187,24 +181,28 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       }
     });
 
-    // If activities are provided, include them in the data
-    if (activityUpsertData) {
-      updatedItineraryData.activities = {
-        upsert: activityUpsertData,
-      };
-    }
-
+    // Proceed to update itinerary
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
-      data: updatedItineraryData,
+      data: {
+        tripName,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        type,
+        name,
+        description,
+        date: new Date(date),
+        time,
+        activities: {
+          upsert: activityUpsertData,
+        },
+      },
     });
 
     res.status(200).json(updatedItinerary);
   } catch (error) {
     console.error('Error updating itinerary:', error);
-    res
-      .status(500)
-      .json({ message: 'Failed to update itinerary', error: error.message });
+    res.status(500).json({ message: 'Failed to update itinerary' });
   }
 });
 
