@@ -150,6 +150,25 @@ router.delete('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   }
 });
 
+router.delete(
+  '/itinerary/activity/:activityId',
+  isLoggedIn,
+  async (req, res) => {
+    const { activityId } = req.params;
+
+    try {
+      await prisma.activity.delete({
+        where: { id: activityId },
+      });
+
+      res.status(200).json({ message: 'Activity deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting activity:', error);
+      res.status(500).json({ message: 'Failed to delete activity' });
+    }
+  }
+);
+
 // router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 //   const { id } = req.params;
 //   const {
@@ -213,81 +232,28 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
-    const existingItinerary = await prisma.itinerary.findUnique({
-      where: { id },
-      include: { activities: true },
-    });
-
-    if (!existingItinerary) {
-      return res.status(404).json({ message: 'Itinerary not found' });
-    }
-
-    const existingActivityIds = new Set(
-      existingItinerary.activities.map((activity) => activity.id)
-    );
-
-    const activitiesToCreate = [];
-    const activitiesToUpdate = [];
-    const activitiesToDelete = new Set(existingActivityIds);
-
-    activities.forEach((activity) => {
-      if (activity.id) {
-        activitiesToUpdate.push({
-          where: { id: activity.id },
-          data: {
-            name: activity.name,
-            description: activity.description,
-            activityTime: activity.activityTime,
-            location: activity.location,
-          },
-        });
-
-        activitiesToDelete.delete(activity.id);
-      } else {
-        activitiesToCreate.push({
-          name: activity.name,
-          description: activity.description,
-          activityTime: activity.activityTime,
-          location: activity.location,
-          itineraryId: id,
-        });
-      }
-    });
-
-    if (activitiesToDelete.size > 0) {
-      await prisma.activity.deleteMany({
-        where: {
-          id: { in: Array.from(activitiesToDelete) },
-        },
-      });
-    }
-
-    const updateData = {
-      tripName,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      type,
-      name,
-      description,
-      date: new Date(date),
-      time,
-    };
-
-    if (activitiesToCreate.length > 0) {
-      updateData.activities = { create: activitiesToCreate };
-    }
-
-    if (activitiesToUpdate.length > 0) {
-      updateData.activities = {
-        ...updateData.activities,
-        update: activitiesToUpdate,
-      };
-    }
+    const activityData = activities.map((activity) => ({
+      name: activity.name,
+      description: activity.description,
+      activityTime: activity.activityTime,
+      location: activity.location,
+    }));
 
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
-      data: updateData,
-      include: { activities: true },
+      data: {
+        tripName,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        type,
+        name,
+        description,
+        date: new Date(date),
+        time,
+        activities: {
+          create: activityData,
+        },
+      },
     });
 
     res.status(200).json(updatedItinerary);
