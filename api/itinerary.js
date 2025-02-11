@@ -94,9 +94,7 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 
 //   try {
 //     const updatedItinerary = await prisma.itinerary.update({
-//       where: {
-//         id,
-//       },
+//       where: { id },
 //       data: {
 //         tripName,
 //         startDate: new Date(startDate),
@@ -107,27 +105,32 @@ router.get('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 //         date: new Date(date),
 //         time,
 //         activities: {
-//           upsert: activities.map((activity) => ({
-//             where: { id: activity.id || '' },
-//             update: {
+//           // Loop over activities to either update or create
+//           update: activities.map((activity) => ({
+//             where: { id: activity.id }, // Use the provided activity id
+//             data: {
 //               name: activity.name,
 //               description: activity.description,
 //               activityTime: activity.activityTime,
 //               location: activity.location,
 //             },
-//             create: {
+//           })),
+//           create: activities
+//             .filter((activity) => !activity.id) // Only create activities that don't have an id
+//             .map((activity) => ({
 //               name: activity.name,
 //               description: activity.description,
 //               activityTime: activity.activityTime,
 //               location: activity.location,
 //               itineraryId: id,
-//             },
-//           })),
+//             })),
 //         },
 //       },
 //     });
+
 //     res.status(200).json(updatedItinerary);
 //   } catch (error) {
+//     console.error('Error updating itinerary:', error);
 //     res.status(500).json({ message: 'Failed to update itinerary' });
 //   }
 // });
@@ -147,45 +150,61 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
+    // Prepare the data object, ensuring we only send non-null values
+    const updatedItineraryData = {
+      tripName,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      type,
+      name,
+      description,
+      date: date ? new Date(date) : undefined,
+      time,
+    };
+
+    // Prepare activities (upsert if an activity id is present, otherwise create new)
+    const activityUpsertData = activities?.map((activity) => {
+      if (activity.id) {
+        return {
+          where: { id: activity.id },
+          update: {
+            name: activity.name,
+            description: activity.description,
+            activityTime: activity.activityTime,
+            location: activity.location,
+          },
+        };
+      } else {
+        return {
+          create: {
+            name: activity.name,
+            description: activity.description,
+            activityTime: activity.activityTime,
+            location: activity.location,
+            itineraryId: id,
+          },
+        };
+      }
+    });
+
+    // If activities are provided, include them in the data
+    if (activityUpsertData) {
+      updatedItineraryData.activities = {
+        upsert: activityUpsertData,
+      };
+    }
+
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
-      data: {
-        tripName,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        type,
-        name,
-        description,
-        date: new Date(date),
-        time,
-        activities: {
-          // Loop over activities to either update or create
-          update: activities.map((activity) => ({
-            where: { id: activity.id }, // Use the provided activity id
-            data: {
-              name: activity.name,
-              description: activity.description,
-              activityTime: activity.activityTime,
-              location: activity.location,
-            },
-          })),
-          create: activities
-            .filter((activity) => !activity.id) // Only create activities that don't have an id
-            .map((activity) => ({
-              name: activity.name,
-              description: activity.description,
-              activityTime: activity.activityTime,
-              location: activity.location,
-              itineraryId: id,
-            })),
-        },
-      },
+      data: updatedItineraryData,
     });
 
     res.status(200).json(updatedItinerary);
   } catch (error) {
     console.error('Error updating itinerary:', error);
-    res.status(500).json({ message: 'Failed to update itinerary' });
+    res
+      .status(500)
+      .json({ message: 'Failed to update itinerary', error: error.message });
   }
 });
 
