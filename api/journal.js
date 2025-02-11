@@ -1,8 +1,12 @@
-const { prisma, express, router } = require('../common');
-const { isLoggedIn } = require('./authMiddleware');
-module.exports = router;
+// changes made:
+// removed parseInt and integer as we are passing id as a string
+// - Added additional console.errors for error messages
+// - Added console.logs to ensure middleware for specific user is handling well
+// - Changed placement of module.exports for better handling (export everything at the same time)
+const { prisma, express, router } = require("../common");
+const { isLoggedIn } = require("./authMiddleware");
 
-router.post('/user/journal', isLoggedIn, async (req, res) => {
+router.post("/user/journal", isLoggedIn, async (req, res) => {
   const { title, content, imageUrl } = req.body;
 
   try {
@@ -17,22 +21,26 @@ router.post('/user/journal', isLoggedIn, async (req, res) => {
 
     res.status(201).json(newJournalEntry);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create journal entry' });
+    console.error(error);
+    res.status(500).json({ message: "Failed to create journal entry" });
   }
 });
 
-router.get('/user/journal', isLoggedIn, async (req, res) => {
+router.get("/user/journal", isLoggedIn, async (req, res) => {
+  console.log("User making request:", req.user);
   try {
     const journalEntries = await prisma.journalEntry.findMany({
       where: { userId: req.user.id },
     });
     res.status(200).json(journalEntries);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch journal entries' });
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch journal entries" });
   }
 });
 
-router.put('/user/journal/:id', isLoggedIn, async (req, res) => {
+router.put("/user/journal/:id", isLoggedIn, async (req, res) => {
+  console.log("User making request:", req.user);
   const { id } = req.params;
   const { title, content, imageUrl } = req.body;
 
@@ -44,11 +52,13 @@ router.put('/user/journal/:id', isLoggedIn, async (req, res) => {
 
     res.status(200).json(updatedJournalEntry);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update journal entry' });
+    console.error(error);
+    res.status(500).json({ message: "Failed to update journal entry" });
   }
 });
 
-router.delete('/user/journal/:id', isLoggedIn, async (req, res) => {
+router.delete("/user/journal/:id", isLoggedIn, async (req, res) => {
+  console.log("User making request:", req.user);
   const { id } = req.params;
 
   try {
@@ -57,6 +67,9 @@ router.delete('/user/journal/:id', isLoggedIn, async (req, res) => {
     });
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete journal entry' });
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete journal entry" });
   }
 });
+
+module.exports = router;
