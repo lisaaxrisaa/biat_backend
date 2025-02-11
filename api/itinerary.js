@@ -213,7 +213,6 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
-    // Get the existing activities from the database
     const existingItinerary = await prisma.itinerary.findUnique({
       where: { id },
       include: { activities: true },
@@ -227,14 +226,12 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       existingItinerary.activities.map((activity) => activity.id)
     );
 
-    // Separate activities into new, updated, and deleted categories
     const activitiesToCreate = [];
     const activitiesToUpdate = [];
     const activitiesToDelete = new Set(existingActivityIds);
 
     activities.forEach((activity) => {
       if (activity.id) {
-        // If the activity exists, update it
         activitiesToUpdate.push({
           where: { id: activity.id },
           data: {
@@ -245,10 +242,8 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
           },
         });
 
-        // Remove from deletion list since it's being updated
         activitiesToDelete.delete(activity.id);
       } else {
-        // If no ID, it's a new activity
         activitiesToCreate.push({
           name: activity.name,
           description: activity.description,
@@ -259,30 +254,39 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       }
     });
 
-    // Delete activities that were removed
-    await prisma.activity.deleteMany({
-      where: {
-        id: { in: Array.from(activitiesToDelete) },
-      },
-    });
+    if (activitiesToDelete.size > 0) {
+      await prisma.activity.deleteMany({
+        where: {
+          id: { in: Array.from(activitiesToDelete) },
+        },
+      });
+    }
 
-    // Perform the update
+    const updateData = {
+      tripName,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      type,
+      name,
+      description,
+      date: new Date(date),
+      time,
+    };
+
+    if (activitiesToCreate.length > 0) {
+      updateData.activities = { create: activitiesToCreate };
+    }
+
+    if (activitiesToUpdate.length > 0) {
+      updateData.activities = {
+        ...updateData.activities,
+        update: activitiesToUpdate,
+      };
+    }
+
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
-      data: {
-        tripName,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        type,
-        name,
-        description,
-        date: new Date(date),
-        time,
-        activities: {
-          create: activitiesToCreate, // Add new activities
-          update: activitiesToUpdate, // Update existing activities
-        },
-      },
+      data: updateData,
       include: { activities: true },
     });
 
