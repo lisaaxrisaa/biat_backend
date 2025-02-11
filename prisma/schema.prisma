@@ -32,13 +32,13 @@ model Itinerary {
   id           String    @id @default(uuid())
   userId       String
   tripName     String    
-  startDate    DateTime  
-  endDate      DateTime 
-  type         String    
-  name         String    
+  startDate    DateTime?  
+  endDate      DateTime? 
+  type         String?    
+  name         String?    
   description  String?   
-  date         DateTime 
-  time         String    
+  date         DateTime? 
+  time         String?    
   user         User      @relation(fields: [userId], references: [id])
   activities   Activity[] 
 }
@@ -46,11 +46,11 @@ model Itinerary {
 model Activity {
   id            String    @id @default(uuid())
   itineraryId   String
-  name          String
+  name          String?
   description   String?
-  activityTime  String
-  location      String
-  itinerary     Itinerary @relation(fields: [itineraryId], references: [id])
+  activityTime  String?
+  location      String?
+  itinerary     Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
 }
 
 
