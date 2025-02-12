@@ -114,54 +114,6 @@ router.delete('/user/itinerary/activity/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
-//   const { id } = req.params;
-//   const {
-//     tripName,
-//     startDate,
-//     endDate,
-//     type,
-//     name,
-//     description,
-//     date,
-//     time,
-//     activities,
-//   } = req.body;
-
-//   try {
-//     const activityData = activities.map((activity) => ({
-//       name: activity.name,
-//       description: activity.description,
-//       activityTime: activity.activityTime,
-//       location: activity.location,
-//     }));
-
-//     const updatedItinerary = await prisma.itinerary.update({
-//       where: { id },
-//       data: {
-//         tripName,
-//         startDate: new Date(startDate),
-//         endDate: new Date(endDate),
-//         type,
-//         name,
-//         description,
-//         date: new Date(date),
-//         time,
-//         activities: {
-//           create: activityData,
-//         },
-//       },
-//     });
-
-//     res.status(200).json(updatedItinerary);
-//   } catch (error) {
-//     console.error('Error updating itinerary:', error);
-//     res
-//       .status(500)
-//       .json({ message: 'Failed to update itinerary', error: error.message });
-//   }
-// });
-
 router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const {
@@ -177,10 +129,9 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
   } = req.body;
 
   try {
-    // Get existing itinerary with activities
     const existingItinerary = await prisma.itinerary.findUnique({
       where: { id },
-      include: { activities: true }, // Include existing activities
+      include: { activities: true },
     });
 
     if (!existingItinerary) {
@@ -197,7 +148,6 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
 
     activities.forEach((activity) => {
       if (activity.id && existingActivityIds.has(activity.id)) {
-        // If activity already exists, update it
         activitiesToUpdate.push({
           where: { id: activity.id },
           data: {
@@ -207,11 +157,8 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
             location: activity.location,
           },
         });
-
-        // Remove from deletion list since it's being updated
         activitiesToDelete.delete(activity.id);
       } else {
-        // If no ID, it's a new activity
         activitiesToCreate.push({
           name: activity.name,
           description: activity.description,
@@ -222,24 +169,17 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       }
     });
 
-    // Delete activities that were removed
     await prisma.activity.deleteMany({
       where: {
         id: { in: Array.from(activitiesToDelete) },
       },
     });
-
-    // Update existing activities
     await Promise.all(
       activitiesToUpdate.map((update) => prisma.activity.update(update))
     );
-
-    // Create new activities
     await prisma.activity.createMany({
       data: activitiesToCreate,
     });
-
-    // Finally, update the itinerary details
     const updatedItinerary = await prisma.itinerary.update({
       where: { id },
       data: {
@@ -252,7 +192,7 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
         date: date ? new Date(date) : null,
         time,
       },
-      include: { activities: true }, // Ensure updated activities are returned
+      include: { activities: true },
     });
 
     res.status(200).json(updatedItinerary);
