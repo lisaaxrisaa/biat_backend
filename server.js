@@ -39,10 +39,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong.' });
 });
 
-// app.listen(PORT, () => {
-//   console.log(`I am listening on PORT ${PORT}`);
-// });
-
 async function startServer() {
   try {
     await prisma.$connect();
@@ -61,6 +57,6 @@ startServer();
 
 process.on('SIGINT', () => {
   console.log('Shutting down gracefully...');
-  prisma.$disconnect(); // Close any Prisma connections gracefully
-  process.exit(0); // Exit the process
+  prisma.$disconnect();
+  process.exit(0);
 });
