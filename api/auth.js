@@ -65,7 +65,7 @@ router.post('/login', async (req, res, next) => {
     if (!user.password) {
       return res.status(500).json({ message: 'Password not found for user' });
     }
-    const match = bcrypt.compare(password, user.password);
+    const match = await bcrypt.compare(password, user.password);
     if (!match) {
       console.error('Password does not match for user:', email);
       return res.status(401).json({ message: 'Invalid email or password' });
