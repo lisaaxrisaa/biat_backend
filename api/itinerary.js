@@ -155,6 +155,7 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
             name: activity.name,
             description: activity.description,
             activityTime: activity.activityTime,
+            date: activity.date ? new Date(activity.date) : null,
             location: activity.location,
           },
         });
@@ -164,6 +165,7 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
           name: activity.name,
           description: activity.description,
           activityTime: activity.activityTime,
+          date: activity.date ? new Date(activity.date) : null,
           location: activity.location,
           itineraryId: id,
         });
