@@ -48,6 +48,7 @@ model Activity {
   itineraryId   String
   name          String?
   description   String?
+  date         DateTime? 
   activityTime  String?
   location      String?
   itinerary     Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)

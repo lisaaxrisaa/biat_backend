@@ -31,6 +31,7 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
           create: activities.map((activity) => ({
             name: activity.name,
             description: activity.description,
+            date: activity.date ? new Date(activity.date) : null,
             activityTime: activity.activityTime,
             location: activity.location,
           })),
