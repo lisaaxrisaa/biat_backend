@@ -38,7 +38,8 @@ model Itinerary {
   name         String?    
   description  String?   
   date         DateTime? 
-  time         String?    
+  time         String?   
+  createdAt   DateTime @default(now()) 
   user         User      @relation(fields: [userId], references: [id])
   activities   Activity[] 
 }

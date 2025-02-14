@@ -51,6 +51,9 @@ router.get('/user/itinerary', isLoggedIn, async (req, res) => {
       where: {
         userId: req.user.id,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
     res.status(200).json(itineraries);
   } catch (error) {
