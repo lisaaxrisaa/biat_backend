@@ -110,46 +110,6 @@ router.get('/aboutMe', isLoggedIn, async (req, res, next) => {
   }
 });
 
-// router.get('/allUsers', isLoggedIn, async (req, res, next) => {
-//   try {
-//     let response;
-
-//     if (!req.user) {
-//       res.status(401).json({ message: 'Not Authorized' });
-//     } else {
-//       response = await prisma.user.findMany({
-//         select: {
-//           first_name: true,
-//           last_name: true,
-//           email: true,
-//         },
-//       });
-//     }
-
-//     res.status(200).json(response);
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
-// router.get('/single-user', isLoggedIn, async (req, res, next) => {
-//   try {
-//     const response = await prisma.user.findUniqueOrThrow({
-//       where: {
-//         id: req.user.id,
-//       },
-//       select: {
-//         first_name: true,
-//         last_name: true,
-//         email: true,
-//       },
-//     });
-//     res.status(200).json(response);
-//   } catch (error) {
-//     res.status(401).send({ message: 'Not authorized.' });
-//   }
-// });
-
 router.delete('/user', isLoggedIn, async (req, res, next) => {
   try {
     if (!req.user) {

@@ -24,6 +24,7 @@ app.use('/api/itinerary', require('./api/itinerary'));
 app.use('/api/journal', require('./api/journal'));
 app.use('/api/packing-list', require('./api/packingList'));
 app.use('/api/weather', require('./api/weather'));
+app.use('/api/flight', require('./api/flight'));
 
 app.get('/', (req, res) => {
   res.send('Welcome to the backend API');
