@@ -6,4 +6,5 @@ const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
-module.exports = { express, router, prisma, faker, bcrypt, jwt, axios };
+const dotenv = require('dotenv');
+module.exports = { express, router, prisma, faker, bcrypt, jwt, axios, dotenv };

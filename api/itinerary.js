@@ -26,6 +26,7 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
         description,
         date: new Date(date),
         time,
+        createdAt: new Date(),
         user: { connect: { id: req.user.id } },
         activities: {
           create: activities.map((activity) => ({
