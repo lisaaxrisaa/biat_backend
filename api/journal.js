@@ -38,7 +38,25 @@ router.get("/user/journal", isLoggedIn, async (req, res) => {
     res.status(500).json({ message: "Failed to fetch journal entries" });
   }
 });
+router.get("/user/journal/:id", isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  console.log("User making request for specific entry:", req.user);
 
+  try {
+    const journalEntry = await prisma.journalEntry.findUnique({
+      where: { id },
+    });
+
+    if (!journalEntry) {
+      return res.status(404).json({ message: "Journal entry not found" });
+    }
+
+    res.status(200).json(journalEntry);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch entry" });
+  }
+});
 router.put("/user/journal/:id", isLoggedIn, async (req, res) => {
   console.log("User making request:", req.user);
   const { id } = req.params;
