@@ -1,17 +1,17 @@
-const { hash } = require('bcrypt');
-const { prisma, express, router, bcrypt } = require('../common');
-const { createToken, isLoggedIn } = require('./authMiddleware');
+const { hash } = require("bcrypt");
+const { prisma, express, router, bcrypt } = require("../common");
+const { createToken, isLoggedIn } = require("./authMiddleware");
 module.exports = router;
 
-router.post('/register', async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     const { email, first_name, last_name, password } = req.body;
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
     if (existingUser) {
-      console.error('Registration failed: Email already in use.');
-      return res.status(400).json({ message: 'Email already in use.' });
+      console.error("Registration failed: Email already in use.");
+      return res.status(400).json({ message: "Email already in use." });
     }
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
@@ -30,21 +30,22 @@ router.post('/register', async (req, res, next) => {
       },
     });
     if (!newUser || !newUser.id) {
-      console.error('User creation failed.');
+      console.error("User creation failed.");
       return res
         .status(400)
-        .json({ message: 'User registration failed. Please try again.' });
+        .json({ message: "User registration failed. Please try again." });
     }
     const token = createToken(newUser.id);
     res.status(201).json({ token, user: newUser });
   } catch (error) {
-    console.error('Error in /register route:', error);
+    console.error("Error in /register route:", error);
     next(error);
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   try {
+    console.log(req.body);
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({
       where: {
@@ -59,16 +60,16 @@ router.post('/login', async (req, res, next) => {
       },
     });
     if (!user) {
-      console.error('User not found:', email);
-      return res.status(401).json({ message: 'Invalid email or password' });
+      console.error("User not found:", email);
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     if (!user.password) {
-      return res.status(500).json({ message: 'Password not found for user' });
+      return res.status(500).json({ message: "Password not found for user" });
     }
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
-      console.error('Password does not match for user:', email);
-      return res.status(401).json({ message: 'Invalid email or password' });
+      console.error("Password does not match for user:", email);
+      return res.status(401).json({ message: "Invalid email or password" });
     }
     const token = createToken(user.id);
     res.status(200).json({
@@ -85,12 +86,12 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-router.get('/aboutMe', isLoggedIn, async (req, res, next) => {
+router.get("/aboutMe", isLoggedIn, async (req, res, next) => {
   try {
     let response;
 
     if (!req.user) {
-      res.status(401).json({ message: 'Not Authorized' });
+      res.status(401).json({ message: "Not Authorized" });
     } else {
       response = await prisma.user.findFirstOrThrow({
         where: {
@@ -113,7 +114,7 @@ router.get('/aboutMe', isLoggedIn, async (req, res, next) => {
 router.delete('/user', isLoggedIn, async (req, res, next) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'Not Authorized' });
+      res.status(401).json({ message: "Not Authorized" });
     } else {
       await prisma.user.delete({
         where: { id: req.user.id },
@@ -121,11 +122,11 @@ router.delete('/user', isLoggedIn, async (req, res, next) => {
     }
     res.sendStatus(204);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete user.' });
+    res.status(500).json({ message: "Failed to delete user." });
   }
 });
 
-router.put('/user/update', isLoggedIn, async (req, res) => {
+router.put("/user/update", isLoggedIn, async (req, res) => {
   const { email, first_name, last_name, password } = req.body;
 
   try {
@@ -149,11 +150,11 @@ router.put('/user/update', isLoggedIn, async (req, res) => {
     });
     res
       .status(200)
-      .json({ message: 'User updated successfully', user: updatedUser });
+      .json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Email is already in use' });
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Email is already in use" });
     }
   }
-  return res.status(500).json({ error: 'Failed to update user' });
+  return res.status(500).json({ error: "Failed to update user" });
 });
