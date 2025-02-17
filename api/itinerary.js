@@ -26,6 +26,7 @@ router.post('/user/itinerary', isLoggedIn, async (req, res) => {
         description,
         date: new Date(date),
         time,
+        createdAt: new Date(),
         user: { connect: { id: req.user.id } },
         activities: {
           create: activities.map((activity) => ({
@@ -50,6 +51,9 @@ router.get('/user/itinerary', isLoggedIn, async (req, res) => {
     const itineraries = await prisma.itinerary.findMany({
       where: {
         userId: req.user.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
     res.status(200).json(itineraries);
