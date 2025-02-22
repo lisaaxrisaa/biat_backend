@@ -40,10 +40,6 @@ router.get('/search', async (req, res) => {
   const fromId = await searchDestination(fromQuery);
   const toId = await searchDestination(toQuery);
 
-  console.log(
-    `🔍 Searching Flights: FROM ${fromQuery} (${fromId}) → TO ${toQuery} (${toId})`
-  );
-
   if (!fromId || !toId) {
     return res.status(400).json({ error: 'Invalid location queries' });
   }
@@ -68,20 +64,29 @@ router.get('/search', async (req, res) => {
 
   try {
     const response = await axios.request(options);
-    console.log('📡 API Response:', JSON.stringify(response.data, null, 2));
+    console.log('API Response Summary:', {
+      status: response.data?.status,
+      message: response.data?.message,
+      totalFlights: response.data?.data?.flightOffers?.length || 0,
+      firstFlight: response.data?.data?.flightOffers?.[0] || 'No flights found',
+    });
 
-    // ✅ Extract flights from `flightOffers`
     const flightOffers = response.data?.data?.flightOffers || [];
 
     if (flightOffers.length === 0) {
       console.warn('⚠️ No flights found.');
     }
 
-    // ✅ Format flight data
     const formattedFlights = flightOffers.map((offer) => {
       const firstSegment = offer.segments?.[0] || {};
       const lastSegment = offer.segments?.slice(-1)[0] || {};
       const firstLeg = firstSegment.legs?.[0] || {};
+      const returnSegment =
+        offer.segments?.length > 1 ? offer.segments[1] : null;
+
+      const allCabinClasses = offer.segments
+        .flatMap((segment) => segment.legs.map((leg) => leg.cabinClass))
+        .join(', ');
 
       return {
         airline: firstLeg.carriersData?.[0]?.name || 'Unknown',
@@ -93,15 +98,18 @@ router.get('/search', async (req, res) => {
         arrivalCode: lastSegment.arrivalAirport?.code || 'N/A',
         departureTime: firstSegment.departureTime || 'Unknown',
         arrivalTime: lastSegment.arrivalTime || 'Unknown',
+        returnDepartureTime: returnSegment?.departureTime || null,
+        returnArrivalTime: returnSegment?.arrivalTime || null,
         price: offer.priceBreakdown?.total?.units || 'Not Available',
         currency: offer.priceBreakdown?.total?.currencyCode || 'USD',
+        cabinClass: allCabinClasses || 'Unknown',
         bookingLink: `https://www.booking.com/flights?offerToken=${offer.token}`,
       };
     });
 
     res.json({ flights: formattedFlights });
   } catch (error) {
-    console.error('❌ API Error:', error.message);
+    console.error('API Error:', error.message);
     res.status(500).json({ error: 'Failed to fetch flights' });
   }
 });
