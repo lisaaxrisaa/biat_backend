@@ -3,7 +3,11 @@ const { isLoggedIn } = require("./authMiddleware");
 
 router.post("/user/budget", isLoggedIn, async (req, res) => {
   const { name, tripType, currency, date, categories } = req.body;
-
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate)) {
+    return res.status(400).json({ message: "Invalid date format" });
+  }
+  
   console.log("reached api endpoint");
   try {
     const newBudget = await prisma.budget.create({
