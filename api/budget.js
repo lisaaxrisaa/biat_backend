@@ -4,6 +4,7 @@ const { isLoggedIn } = require("./authMiddleware");
 router.post("/user/budget", isLoggedIn, async (req, res) => {
   const { name, tripType, currency, date, categories } = req.body;
 
+  console.log("reached api endpoint");
   try {
     const newBudget = await prisma.budget.create({
       data: {
@@ -24,7 +25,8 @@ router.post("/user/budget", isLoggedIn, async (req, res) => {
     });
     res.status(201).json(newBudget);
   } catch (error) {
-    console.error(error);
+    console.error("Error creating budget:", error);
+    res.status(500).json({ message: "Failed to add budget" });
   }
 });
 // the following route gets a list of the users budgets
