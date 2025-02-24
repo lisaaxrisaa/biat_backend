@@ -2,12 +2,12 @@ const { prisma, express, router } = require("../common");
 const { isLoggedIn } = require("./authMiddleware");
 
 router.post("/user/budget", isLoggedIn, async (req, res) => {
-  const { name, tripType, currency, date, categories } = req.body;
+  const { name, tripType, currency, date, amount, categories } = req.body;
   const parsedDate = new Date(date);
   if (isNaN(parsedDate)) {
     return res.status(400).json({ message: "Invalid date format" });
   }
-  
+
   try {
     const newBudget = await prisma.budget.create({
       data: {
@@ -15,6 +15,7 @@ router.post("/user/budget", isLoggedIn, async (req, res) => {
         tripType,
         currency,
         date: new Date(date),
+        amount,
         user: { connect: { id: req.user.id } },
         categories: {
           create: categories.map((category) => ({
@@ -51,8 +52,9 @@ router.get("/user/budget", isLoggedIn, async (req, res) => {
 // the following file allows users to edit budget details
 router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
   const { id } = req.params;
-  const { name, tripType, currency, date, categories } = req.body;
+  const { name, tripType, currency, date, amount, categories } = req.body;
 
+  // use upsert instead of delete many just incase it leads to issues
   try {
     const updatedBudget = await prisma.budget.update({
       where: { id },
@@ -60,14 +62,24 @@ router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
         name,
         tripType,
         currency,
+        amount,
         date: new Date(date),
         categories: {
-          deleteMany: {},
-          categories: categories.map((category) => ({
-            name: category.name,
-            budgeted: category.budgeted,
-            actual: category.actual,
-            difference: (category.budgeted = category.actual),
+          upsert: categories.map((category) => ({
+            where: category.id ? { id: category.id } : undefined,
+            update: {
+              name: category.name,
+              budgeted: category.budgeted,
+              actual: category.actual,
+              difference: category.budgeted - category.actual,
+            },
+            create: {
+              name: category.name,
+              budgeted: category.budgeted,
+              actual: category.actual,
+              difference: category.budgeted - category.actual,
+              budget: { connect: { id } },
+            },
           })),
         },
       },
@@ -78,6 +90,7 @@ router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
     res.status(200).json(updatedBudget);
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: "Unable to edit/update budget!" });
   }
 });
 
@@ -149,7 +162,7 @@ router.delete(
       await prisma.category.delete({
         where: { id: categoryId },
       });
-      res.status(204).send;
+      res.status(204).send();
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Unable to delete category!" });
@@ -158,3 +171,4 @@ router.delete(
 );
 
 module.exports = router;
+
