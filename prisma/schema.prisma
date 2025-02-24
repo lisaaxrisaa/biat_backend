@@ -71,12 +71,11 @@ model Budget {
   id        String  @id @default(uuid())
   userId    String
   name      String  
-  categories  Category[]  
-  amount    Float   
+  categories  Category[]    
   currency  String  
   date      DateTime 
-  createdAt DateTime
-  updatedAt DateTime
+  createdAt DateTime  @default(now()) 
+  updatedAt DateTime  @updatedAt
   tripType  String   
   user      User     @relation(fields: [userId], references: [id])
 }
