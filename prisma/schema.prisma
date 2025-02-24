@@ -59,7 +59,7 @@ model Activity {
 model PackingList {
   id       String   @id @default(uuid())
   userId   String
-  name     String   // Name of the packing list (e.g., "Hawaii Trip")
+  name     String   
   items    PackingItem[]
   user     User     @relation(fields: [userId], references: [id])
 }
