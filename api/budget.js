@@ -50,6 +50,25 @@ router.get("/user/budget", isLoggedIn, async (req, res) => {
     res.status(500).json({ message: "Unable to fetch budget list!" });
   }
 });
+// the following route gets a specific budget for the user to view (by the id)
+router.get("/user/budget/:id", isLoggedIn, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const budget = await prisma.budget.findUnique({
+      where: { id },
+      include: {
+        categories: true,
+      },
+    });
+    if (!budget) {
+      return res.status(404).json({ message: "No such budget found." });
+    }
+    res.status(200).json(budget);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Unable to fetch budget!" });
+  }
+});
 
 // the following file allows users to edit budget details
 router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
