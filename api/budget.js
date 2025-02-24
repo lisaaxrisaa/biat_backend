@@ -8,7 +8,6 @@ router.post("/user/budget", isLoggedIn, async (req, res) => {
     return res.status(400).json({ message: "Invalid date format" });
   }
   
-  console.log("reached api endpoint");
   try {
     const newBudget = await prisma.budget.create({
       data: {
