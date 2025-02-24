@@ -53,6 +53,7 @@ router.get("/user/budget", isLoggedIn, async (req, res) => {
 // the following route gets a specific budget for the user to view (by the id)
 router.get("/user/budget/:id", isLoggedIn, async (req, res) => {
   const { id } = req.params;
+  console.log("Recieved budget with id: ", id); //remove if error is resolved
   try {
     const budget = await prisma.budget.findUnique({
       where: { id },
