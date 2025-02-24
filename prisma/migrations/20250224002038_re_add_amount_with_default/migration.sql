@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Budget" ADD COLUMN     "amount" DOUBLE PRECISION NOT NULL DEFAULT 0;

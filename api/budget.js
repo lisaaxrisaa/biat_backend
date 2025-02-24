@@ -1,13 +1,13 @@
-const { prisma, express, router } = require("../common");
-const { isLoggedIn } = require("./authMiddleware");
+const { prisma, express, router } = require('../common');
+const { isLoggedIn } = require('./authMiddleware');
 
-router.post("/user/budget", isLoggedIn, async (req, res) => {
-  const { name, tripType, currency, date, categories } = req.body;
+router.post('/user/budget', isLoggedIn, async (req, res) => {
+  const { name, tripType, currency, date, amount, categories } = req.body;
   const parsedDate = new Date(date);
   if (isNaN(parsedDate)) {
-    return res.status(400).json({ message: "Invalid date format" });
+    return res.status(400).json({ message: 'Invalid date format' });
   }
-  
+
   try {
     const newBudget = await prisma.budget.create({
       data: {
@@ -15,6 +15,7 @@ router.post("/user/budget", isLoggedIn, async (req, res) => {
         tripType,
         currency,
         date: new Date(date),
+        amount,
         user: { connect: { id: req.user.id } },
         categories: {
           create: categories.map((category) => ({
@@ -28,12 +29,12 @@ router.post("/user/budget", isLoggedIn, async (req, res) => {
     });
     res.status(201).json(newBudget);
   } catch (error) {
-    console.error("Error creating budget:", error);
-    res.status(500).json({ message: "Failed to add budget" });
+    console.error('Error creating budget:', error);
+    res.status(500).json({ message: 'Failed to add budget' });
   }
 });
 // the following route gets a list of the users budgets
-router.get("/user/budget", isLoggedIn, async (req, res) => {
+router.get('/user/budget', isLoggedIn, async (req, res) => {
   try {
     const budgetList = await prisma.budget.findMany({
       where: { userId: req.user.id },
@@ -44,12 +45,12 @@ router.get("/user/budget", isLoggedIn, async (req, res) => {
     res.status(200).json(budgetList);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Unable to fetch budget list!" });
+    res.status(500).json({ message: 'Unable to fetch budget list!' });
   }
 });
 
 // the following file allows users to edit budget details
-router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
+router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const { name, tripType, currency, date, categories } = req.body;
 
@@ -82,7 +83,7 @@ router.put("/user/budget/:id", isLoggedIn, async (req, res) => {
 });
 
 // following router allows users to delete budgets s
-router.delete("/user/budget/:id", isLoggedIn, async (req, res) => {
+router.delete('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.budget.delete({
@@ -91,11 +92,11 @@ router.delete("/user/budget/:id", isLoggedIn, async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Unable to delete budget!" });
+    res.status(500).json({ message: 'Unable to delete budget!' });
   }
 });
 // the following route creates a new category for a specific budget
-router.post("/user/budget/:id/category", isLoggedIn, async (req, res) => {
+router.post('/user/budget/:id/category', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const { name, budgeted, actual } = req.body;
   try {
@@ -111,12 +112,12 @@ router.post("/user/budget/:id/category", isLoggedIn, async (req, res) => {
     res.status(201).json(newCategory);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Unable to create category" });
+    res.status(500).json({ message: 'Unable to create category' });
   }
 });
 // the following route edits a specific category within a specific budget
 router.put(
-  "/user/budget/:budgetId/category/:categoryId",
+  '/user/budget/:budgetId/category/:categoryId',
   isLoggedIn,
   async (req, res) => {
     const { budgetId, categoryId } = req.params;
@@ -135,13 +136,13 @@ router.put(
       res.status(200).json(updatedCategory);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Unable to edit category!" });
+      res.status(500).json({ message: 'Unable to edit category!' });
     }
   }
 );
 // the following route handles deleting a specific route from a specific budget
 router.delete(
-  "/user/budget/:budgetId/category/:categoryId",
+  '/user/budget/:budgetId/category/:categoryId',
   isLoggedIn,
   async (req, res) => {
     const { budgetId, categoryId } = req.params;
@@ -152,7 +153,7 @@ router.delete(
       res.status(204).send;
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Unable to delete category!" });
+      res.status(500).json({ message: 'Unable to delete category!' });
     }
   }
 );
