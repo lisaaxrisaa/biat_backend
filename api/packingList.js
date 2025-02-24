@@ -65,14 +65,15 @@ router.delete(
   '/user/packing-lists/items/:itemId',
   isLoggedIn,
   async (req, res) => {
-    const { id } = req.params;
+    const { itemId } = req.params;
     try {
-      await prisma.packingList.delete({
-        where: { id },
+      await prisma.packingItem.delete({
+        where: { id: itemId },
       });
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: 'Failed to delete packing list' });
+      console.error('Delete error:', error);
+      res.status(500).json({ message: 'Failed to delete packing item' });
     }
   }
 );
