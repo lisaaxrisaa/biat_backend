@@ -100,7 +100,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
             budgeted: category.budgeted,
             actual: category.actual,
             difference: category.budgeted - category.actual,
-            budget: { connect: { id } },t
+            budget: { connect: { id } },
           })),
         },
       },
