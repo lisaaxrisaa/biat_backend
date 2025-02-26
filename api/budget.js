@@ -100,7 +100,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
             budgeted: category.budgeted,
             actual: category.actual,
             difference: category.budgeted - category.actual,
-            budget: { connect: { id } },t
+            budget: { connect: { id } },
           })),
         },
       },
@@ -111,7 +111,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
 
     res.status(200).json(updatedBudget);
   } catch (error) {
-    console.error(error);
+    console.error("Error updating budget: ", error);
     res.status(500).json({ message: "Unable to edit/update budget!" });
   }
 });
