@@ -83,7 +83,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
     difference: category.budgeted - category.actual,
   }));
 
-  // use upsert instead of delete many just incase it leads to issues
+  // use deleteMany to fix duplicate categories error
   try {
     const updatedBudget = await prisma.budget.update({
       where: { id },
@@ -94,21 +94,13 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
         amount,
         date: new Date(date),
         categories: {
-          upsert: categoriesDifference.map((category) => ({
-            where: { id: category.id || 'non-existent-id' },
-            update: {
-              name: category.name,
-              budgeted: category.budgeted,
-              actual: category.actual,
-              difference: category.budgeted - category.actual,
-            },
-            create: {
-              name: category.name,
-              budgeted: category.budgeted,
-              actual: category.actual,
-              difference: category.budgeted - category.actual,
-              // budget: { connect: { id } },
-            },
+          deleteMany: {},
+          create: categoriesDifference.map((category) => ({
+            name: category.name,
+            budgeted: category.budgeted,
+            actual: category.actual,
+            difference: category.budgeted - category.actual,
+            budget: { connect: { id } },t
           })),
         },
       },
@@ -116,10 +108,11 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
         categories: true,
       },
     });
+
     res.status(200).json(updatedBudget);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Unable to edit/update budget!' });
+    res.status(500).json({ message: "Unable to edit/update budget!" });
   }
 });
 
