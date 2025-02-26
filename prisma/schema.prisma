@@ -57,13 +57,19 @@ model Activity {
 
 
 model PackingList {
-  id        String  @id @default(uuid())
-  userId    String
-  name      String  
-  category  String  
-  packed    Boolean @default(false) 
-  tripType  String  
-  user      User    @relation(fields: [userId], references: [id])
+  id       String   @id @default(uuid())
+  userId   String
+  name     String   
+  items    PackingItem[]
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model PackingItem {
+  id            String  @id @default(uuid())
+  packingListId String
+  description   String  
+  packed        Boolean @default(false) 
+  packingList   PackingList @relation(fields: [packingListId], references: [id], onDelete: Cascade)
 }
 
 
