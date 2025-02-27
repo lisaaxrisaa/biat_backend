@@ -25,7 +25,6 @@ model User {
   packingList  PackingList[]
   budget       Budget[]
   journalEntry JournalEntry[]
-  checklistItem ChecklistItem[]
 }
 
 model Itinerary {
@@ -57,11 +56,16 @@ model Activity {
 
 
 model PackingList {
-  id       String   @id @default(uuid())
-  userId   String
-  name     String   
-  items    PackingItem[]
-  user     User     @relation(fields: [userId], references: [id])
+  id            String       @id @default(uuid())
+  userId        String
+  name          String       
+  destination   String?      
+  departureDate DateTime?    
+  returnDate    DateTime?    
+  category      String?      
+  notes         String?      
+  items         PackingItem[]
+  user          User         @relation(fields: [userId], references: [id])
 }
 
 model PackingItem {
@@ -110,13 +114,3 @@ model JournalEntry {
 }
 
 
-model ChecklistItem {
-  id        String    @id @default(uuid())
-  userId    String
-  name      String    
-  completed Boolean   @default(false) 
-  dueDate   DateTime  
-  createdAt DateTime  @default(now())  
-  updatedAt DateTime  @updatedAt     
-  user      User      @relation(fields: [userId], references: [id])
-}
