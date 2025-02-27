@@ -54,7 +54,7 @@ router.get('/user/budget', isLoggedIn, async (req, res) => {
 // the following route gets a specific budget for the user to view (by the id)
 router.get('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
-  console.log('Recieved budget with id: ', id); //remove if error is resolved
+  console.log('Received budget with id: ', id); //remove if error is resolved
   try {
     const budget = await prisma.budget.findUnique({
       where: { id },
@@ -72,7 +72,6 @@ router.get('/user/budget/:id', isLoggedIn, async (req, res) => {
   }
 });
 
-// the following file allows users to edit budget details
 router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const { name, tripType, currency, date, amount, categories } = req.body;
@@ -88,11 +87,25 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
 
     const existingBudget = await prisma.budget.findUnique({
       where: { id },
+      include: { categories: true }, 
     });
 
     if (!existingBudget) {
       return res.status(404).json({ message: 'Budget not found' });
     }
+
+    const categoryIdsInRequest = categories.map((category) => category.id);
+    const categoriesToDelete = existingBudget.categories.filter(
+      (category) => !categoryIdsInRequest.includes(category.id)
+    );
+
+    await Promise.all(
+      categoriesToDelete.map(async (category) => {
+        await prisma.category.delete({
+          where: { id: category.id },
+        });
+      })
+    );
 
     const updatedBudget = await prisma.budget.update({
       where: { id },
@@ -143,6 +156,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
     });
   }
 });
+
 
 // following router allows users to delete budgets s
 router.delete('/user/budget/:id', isLoggedIn, async (req, res) => {
