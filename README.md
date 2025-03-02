@@ -29,6 +29,8 @@ npm install
 
 ### **Set up environment variables**
 
+Create a `.env` file in the root of the project and add the following:
+
 ```sh
 DATABASE_URL=your_postgresql_url
 JWT_SECRET=your_secret_key
@@ -42,20 +44,25 @@ npm run dev
 
 ## 📡 API Endpoints
 
-The API is deployed on Render.com and accessible at:<br>
-👉 https://biat-backend.onrender.com
+The API is deployed on Render.com:  
+👉 **[https://biat-backend.onrender.com](https://biat-backend.onrender.com)**
 
-Example Endpoints:<br>
-POST /api/auth/register - Register a new user<br>
-POST /api/auth/login - Login and receive a JWT token<br>
-GET /api/itinerary - Retrieve user itineraries<br>
-For a full list of API endpoints, check out the **Postman Collection**:  
+| Method   | Endpoint             | Description                   |
+| -------- | -------------------- | ----------------------------- |
+| **POST** | `/api/auth/register` | Register a new user           |
+| **POST** | `/api/auth/login`    | Login and receive a JWT token |
+| **GET**  | `/api/itinerary`     | Retrieve user itineraries     |
+
+**For a full list of API endpoints, check out the Postman Collection:**  
 👉 **[Pack Ahead API - Postman Collection](https://www.postman.com/collection/)**
 
 ## 🌍 Want to check out the frontend?
 
+The frontend for Pack Ahead is built with **React, Vite, and Redux Toolkit**.  
+Check out the repository here:  
 👉 **[Pack Ahead Frontend Repository](https://github.com/lisaaxrisaa/biat_frontend.git)**
 
-## License
+## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is open-source and available under the **MIT License**.  
+📖 See the full license details in the [LICENSE](./LICENSE) file.
