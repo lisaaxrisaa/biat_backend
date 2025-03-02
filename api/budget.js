@@ -86,11 +86,25 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
 
     const existingBudget = await prisma.budget.findUnique({
       where: { id },
+      include: { categories: true }, 
     });
 
     if (!existingBudget) {
       return res.status(404).json({ message: 'Budget not found' });
     }
+
+    const categoryIdsInRequest = categories.map((category) => category.id);
+    const categoriesToDelete = existingBudget.categories.filter(
+      (category) => !categoryIdsInRequest.includes(category.id)
+    );
+
+    await Promise.all(
+      categoriesToDelete.map(async (category) => {
+        await prisma.category.delete({
+          where: { id: category.id },
+        });
+      })
+    );
 
     const updatedBudget = await prisma.budget.update({
       where: { id },
@@ -141,6 +155,7 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
     });
   }
 });
+
 
 router.delete('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
