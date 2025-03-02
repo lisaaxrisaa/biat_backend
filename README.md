@@ -55,3 +55,7 @@ For a full list of API endpoints, check out the **Postman Collection**:
 ## 🌍 Want to check out the frontend?
 
 👉 **[Pack Ahead Frontend Repository](https://github.com/lisaaxrisaa/biat_frontend.git)**
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.

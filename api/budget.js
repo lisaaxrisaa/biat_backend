@@ -36,7 +36,6 @@ router.post('/user/budget', isLoggedIn, async (req, res) => {
   }
 });
 
-// the following route gets a list of the users budgets
 router.get('/user/budget', isLoggedIn, async (req, res) => {
   try {
     const budgetList = await prisma.budget.findMany({
@@ -51,10 +50,10 @@ router.get('/user/budget', isLoggedIn, async (req, res) => {
     res.status(500).json({ message: 'Unable to fetch budget list!' });
   }
 });
-// the following route gets a specific budget for the user to view (by the id)
+
 router.get('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
-  console.log('Received budget with id: ', id); //remove if error is resolved
+
   try {
     const budget = await prisma.budget.findUnique({
       where: { id },
@@ -158,7 +157,6 @@ router.put('/user/budget/:id', isLoggedIn, async (req, res) => {
 });
 
 
-// following router allows users to delete budgets s
 router.delete('/user/budget/:id', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   try {
@@ -171,7 +169,7 @@ router.delete('/user/budget/:id', isLoggedIn, async (req, res) => {
     res.status(500).json({ message: 'Unable to delete budget!' });
   }
 });
-// the following route creates a new category for a specific budget
+
 router.post('/user/budget/:id/category', isLoggedIn, async (req, res) => {
   const { id } = req.params;
   const { name, budgeted, actual } = req.body;
