@@ -1,7 +1,6 @@
 const { hash } = require('bcrypt');
 const { prisma, express, router, bcrypt } = require('../common');
 const { createToken, isLoggedIn } = require('./authMiddleware');
-module.exports = router;
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -158,3 +157,5 @@ router.put('/user/update', isLoggedIn, async (req, res) => {
   }
   return res.status(500).json({ error: 'Failed to update user' });
 });
+
+module.exports = router;

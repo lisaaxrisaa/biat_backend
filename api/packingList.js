@@ -1,6 +1,5 @@
 const { prisma, express, router } = require('../common');
 const { isLoggedIn } = require('./authMiddleware');
-module.exports = router;
 
 router.post('/user/packing-lists', isLoggedIn, async (req, res) => {
   const { name, destination, departureDate, returnDate, category, notes } =
@@ -148,3 +147,5 @@ router.put(
     }
   }
 );
+
+module.exports = router;
