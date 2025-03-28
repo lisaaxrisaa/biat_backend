@@ -8,7 +8,7 @@ app.use(require('morgan')('dev'));
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'biatbackend-production.up.railway.app'],
+    origin: ['http://localhost:5173', 'https://biat-backend.onrender.com'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
