@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { express, router, axios } = require('../common');
-module.exports = router;
 
 const searchDestination = async (query) => {
   const options = {
@@ -113,3 +112,5 @@ router.get('/search', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch flights' });
   }
 });
+
+module.exports = router;

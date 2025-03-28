@@ -1,5 +1,4 @@
 const { express, router, axios } = require('../common');
-module.exports = router;
 
 const API_KEY = process.env.VISUAL_CROSSING_API_KEY;
 const BASE_URL =
@@ -22,3 +21,5 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Error fetching weather data' });
   }
 });
+
+module.exports = router;

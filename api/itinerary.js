@@ -1,6 +1,5 @@
 const { prisma, express, router } = require('../common');
 const { isLoggedIn } = require('./authMiddleware');
-module.exports = router;
 
 router.post('/user/itinerary', isLoggedIn, async (req, res) => {
   const {
@@ -210,3 +209,5 @@ router.put('/user/itinerary/:id', isLoggedIn, async (req, res) => {
       .json({ message: 'Failed to update itinerary', error: error.message });
   }
 });
+
+module.exports = router;
