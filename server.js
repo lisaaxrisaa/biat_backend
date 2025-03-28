@@ -8,7 +8,7 @@ app.use(require('morgan')('dev'));
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://pack-ahead.vercel.app'],
+    origin: ['http://localhost:5173', 'biatbackend-production.up.railway.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
